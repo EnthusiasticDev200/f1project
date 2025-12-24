@@ -1,14 +1,16 @@
 table 50101 "Race Event"
 {
+    Caption = 'Race Event';
     DataClassification = CustomerContent;
+    LookupPageId = "Race Page";
     
     fields
     {
         field(1;"Race No."; Code[10])
         {
             Caption = 'Race Id';
+            Editable = false;
         }
-
         field(2; "Race Name"; Text[20])
         {
             Caption = 'Name';
@@ -63,8 +65,16 @@ table 50101 "Race Event"
     
     trigger OnInsert()
     begin
-        if "Race No." = '' then 
-            Error('Race No and Name must be field'); 
+        if "Race No." = '' then begin
+                SalesSetUp.Get();
+                SalesSetUp.TestField("Race No.");
+                if NoSeriesMgt.AreRelated(SalesSetUp."Race No.", xRec."No. Series") then
+                    "No. Series" := xRec."No. Series"
+                else
+                    "No. Series" := SalesSetUp."Race No.";
+                    "Race No." := NoSeriesMgt.GetNextNo("No. Series", WorkDate());
+            end;
+            //Error('Race No and Name must be field'); 
     end;
     
     trigger OnModify()
